@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tekno-Leb — Lebdeğmez Oyunu</title>
+<style>
+:root{
+  --bg:#0f1626; --panel:#18223a; --panel2:#202c49; --line:#2e3c60;
+  --ink:#f3e9d2; --mute:#a9b3c9; --gold:#e8a33d; --ok:#3fbf9b; --bad:#e0564a;
+  --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,serif;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);-webkit-text-size-adjust:100%}
+body{min-height:100vh;background:
+  radial-gradient(900px 500px at 50% -10%,#24345c 0%,transparent 70%),var(--bg)}
+main{max-width:560px;margin:0 auto;padding:18px 16px 40px}
+.screen{display:none}.screen.on{display:block}
+h1{font-family:var(--serif);font-size:40px;margin:18px 0 2px;letter-spacing:.5px;text-wrap:balance}
+h1 span{color:var(--gold)}
+h2{font-family:var(--serif);font-size:24px;margin:6px 0 12px}
+p{line-height:1.5;margin:8px 0}
+.sub{color:var(--mute);font-size:15px}
+.motif{height:10px;margin:14px 0 18px;opacity:.8;background:
+  repeating-linear-gradient(135deg,var(--gold) 0 6px,transparent 6px 12px),
+  repeating-linear-gradient(45deg,var(--gold) 0 6px,transparent 6px 12px);
+  -webkit-mask:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent);mask:linear-gradient(90deg,transparent,#000 20%,#000 80%,transparent)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px;margin:12px 0}
+button{font:inherit;color:var(--ink);background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:13px 16px;min-height:48px;cursor:pointer;width:100%;text-align:left}
+button:active{transform:translateY(1px)}
+button.primary{background:var(--gold);border-color:var(--gold);color:#1b1305;font-weight:700;text-align:center}
+button.ghost{background:transparent;text-align:center;color:var(--mute)}
+button.small{width:auto;min-height:40px;padding:8px 12px;font-size:14px}
+button b{display:block;font-size:17px}
+button small{color:var(--mute);font-size:13.5px}
+.menu button{margin:8px 0}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.row>*{flex:1}
+label{display:block;font-size:13px;color:var(--mute);margin:10px 0 4px}
+input[type=text],textarea,select{width:100%;font:inherit;color:var(--ink);background:#0f182b;border:1px solid var(--line);border-radius:10px;padding:11px 12px}
+textarea{min-height:76px;resize:vertical;font-family:var(--serif);font-size:19px}
+input[type=range]{width:100%;accent-color:var(--gold)}
+.seg{display:flex;gap:6px}
+.seg button{text-align:center;padding:10px 6px;min-height:44px;font-size:15px}
+.seg button.sel{border-color:var(--gold);color:var(--gold);background:#2a2412}
+.cam{position:relative;border-radius:14px;overflow:hidden;background:#000;aspect-ratio:4/3;border:2px solid var(--line);transition:border-color .15s}
+.cam.small{max-height:34vh;margin:0 auto}
+.cam video,.cam canvas{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1)}
+.cam.touch{border-color:var(--bad);box-shadow:0 0 0 4px rgba(224,86,74,.35)}
+.cam.open{border-color:var(--ok)}
+.cam .note{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:16px;color:var(--mute);font-size:15px;background:#0b1120}
+.pill{display:inline-block;padding:5px 10px;border-radius:99px;font-size:13px;font-weight:700;background:var(--panel2);border:1px solid var(--line)}
+.pill.ok{color:var(--ok);border-color:var(--ok)}.pill.bad{color:var(--bad);border-color:var(--bad)}.pill.gold{color:var(--gold);border-color:var(--gold)}
+.meter{position:relative;height:14px;background:#0f182b;border-radius:99px;overflow:hidden;border:1px solid var(--line)}
+.meter i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--ok);border-radius:99px}
+.meter.time i{background:var(--gold)}
+.meter em{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--bad)}
+.hud{display:flex;justify-content:space-between;align-items:center;gap:8px;margin:10px 0;font-variant-numeric:tabular-nums}
+.hearts{color:var(--bad);font-size:20px;letter-spacing:3px}
+.hearts s{color:#44506e;text-decoration:none}
+.score{font-size:20px;font-weight:800}
+.dize{font-family:var(--serif);font-size:25px;line-height:1.35;text-align:center;margin:12px 0 6px;text-wrap:balance;min-height:68px;display:flex;align-items:center;justify-content:center}
+.tag{font-size:12.5px;color:var(--mute);text-align:center;letter-spacing:.6px;text-transform:uppercase}
+.banner{min-height:48px;display:flex;align-items:center;justify-content:center;text-align:center;font-weight:700;border-radius:12px;margin:10px 0;padding:8px 12px;background:var(--panel2);border:1px solid var(--line)}
+.banner.ok{background:#12372f;border-color:var(--ok);color:var(--ok)}
+.banner.bad{background:#3a1814;border-color:var(--bad);color:#ff8f84}
+.lbl{font-size:12.5px;color:var(--mute);margin:8px 0 4px;display:flex;justify-content:space-between}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:9px 6px;border-bottom:1px solid var(--line);font-size:15px}
+th{color:var(--mute);font-size:12.5px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+td:last-child,th:last-child{text-align:right}
+.lab{color:var(--bad);font-weight:800;text-decoration:underline}
+.big{font-size:44px;font-weight:800;font-family:var(--serif);color:var(--gold);text-align:center;margin:6px 0}
+.center{text-align:center}
+.badges{display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:8px 0}
+.demo{border:1px dashed var(--gold);border-radius:12px;padding:10px;margin-top:10px}
+.hide{display:none!important}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<main>
+
+<!-- ANA MENÜ -->
+<section id="s-menu" class="screen on">
+  <h1>Tekno-<span>Leb</span></h1>
+  <p class="sub">Dudak değmeden söyle. Kamera dudaklarını izler; b, p, m, f, v dersen yanarsın.</p>
+  <div class="motif"></div>
+  <div class="menu">
+    <button data-go="solo"><b>Tek kişilik</b><small>Dizeleri oku, dudağını değdirme, puan topla</small></button>
+    <button data-go="duel"><b>Atışma — iki kişilik</b><small>Sırayla söyleyin; dudağı değen can kaybeder</small></button>
+    <button data-go="atolye"><b>Hece atölyesi</b><small>Kendi dizeni yaz: hece ölçüsü ve dudak ünsüzü denetimi</small></button>
+    <button data-go="board"><b>Puan tablosu</b><small>En iyi âşıklar</small></button>
+  </div>
+  <p class="sub" style="margin-top:18px">Lebdeğmez: âşıklık geleneğinde dudak ünsüzleri (b, p, m, f, v) kullanılmadan, hece ölçüsüne bağlı kalarak şiir söyleme sanatı.</p>
+</section>
+
+<!-- TEK KİŞİLİK HAZIRLIK -->
+<section id="s-solo" class="screen">
+  <h2>Tek kişilik</h2>
+  <label for="soloName">Adın</label>
+  <input type="text" id="soloName" maxlength="16" placeholder="Âşık adı">
+  <label>Seviye</label>
+  <div class="seg" id="levelSeg">
+    <button data-v="cirak" class="sel">Çırak<br><small>7–8 hece</small></button>
+    <button data-v="kalfa">Kalfa<br><small>11 hece</small></button>
+    <button data-v="usta">Usta<br><small>14 hece</small></button>
+  </div>
+  <div class="card sub">6 dize, 3 can. Her dizeyi sesli oku: okuma çubuğu dolunca dize tamamlanır. Dudakların birbirine değerse can gider.</div>
+  <button class="primary" id="soloGo">Kamerayı hazırla</button>
+  <button class="ghost" data-go="menu">Geri</button>
+</section>
+
+<!-- ATIŞMA HAZIRLIK -->
+<section id="s-duel" class="screen">
+  <h2>Atışma</h2>
+  <div class="row">
+    <div><label for="p1">1. âşık</label><input type="text" id="p1" maxlength="14" placeholder="Ad"></div>
+    <div><label for="p2">2. âşık</label><input type="text" id="p2" maxlength="14" placeholder="Ad"></div>
+  </div>
+  <label>Söyleyiş</label>
+  <div class="seg" id="duelSeg">
+    <button data-v="hazir" class="sel">Hazır dize<br><small>11 hece</small></button>
+    <button data-v="dogac">Doğaçlama<br><small>ayak verilir</small></button>
+  </div>
+  <div class="card sub">Aynı kameranın önünde sırayla söylenir. Herkesin 3 canı var, beşer tur. Canı biten kaybeder; kimse yanmazsa puanı yüksek olan kazanır.</div>
+  <button class="primary" id="duelGo">Kamerayı hazırla</button>
+  <button class="ghost" data-go="menu">Geri</button>
+</section>
+
+<!-- KAMERA AYARI -->
+<section id="s-cal" class="screen">
+  <h2>Kamera ayarı</h2>
+  <div class="cam" id="calCam"><div class="note" id="calNote">Kamera bekleniyor…</div></div>
+  <div class="lbl"><span>Dudak açıklığı</span><span id="calState" class="pill">—</span></div>
+  <div class="meter" id="calMeter"><i></i><em></em></div>
+  <div class="card">
+    <p class="sub" style="margin-top:0">Yüzün aydınlık ve kadrajda olsun. Dudaklarını kapat ve düğmeye bas; eşik sana göre ayarlanır.</p>
+    <button id="calBtn">Dudaklarım kapalı — ayarla</button>
+    <label for="sens">Hassasiyet (kırmızı çizgi: temas eşiği)</label>
+    <input type="range" id="sens" min="15" max="90" value="35">
+  </div>
+  <button class="primary" id="calGo">Oyuna başla</button>
+  <button class="ghost" id="calDemo">Kamera yok — kamerasız deneme modu</button>
+  <button class="ghost" data-go="menu">Geri</button>
+</section>
+
+<!-- OYUN -->
+<section id="s-play" class="screen">
+  <div class="hud">
+    <div><div id="who" class="pill gold">—</div></div>
+    <div class="hearts" id="hearts"></div>
+    <div class="score" id="score">0</div>
+  </div>
+  <div class="cam small" id="playCam"></div>
+  <div class="tag" id="tag">—</div>
+  <div class="dize" id="dize">—</div>
+  <div class="banner" id="banner">Hazır ol</div>
+  <div class="lbl"><span>Okuma</span><span id="lip" class="pill">—</span></div>
+  <div class="meter" id="readMeter"><i></i></div>
+  <div class="lbl"><span>Süre</span><span id="streak"></span></div>
+  <div class="meter time" id="timeMeter"><i></i></div>
+  <div class="demo hide" id="demoBox">
+    <div class="sub" style="margin-bottom:8px">Kamerasız deneme modu — dudak takibi yapılmıyor.</div>
+    <div class="row"><button id="demoRead" class="small">Okudum</button><button id="demoTouch" class="small">Dudak değdi</button></div>
+  </div>
+  <button class="ghost" id="quit" style="margin-top:12px">Oyunu bitir</button>
+</section>
+
+<!-- SONUÇ -->
+<section id="s-end" class="screen">
+  <h2 id="endTitle">Sonuç</h2>
+  <div id="endBody"></div>
+  <button class="primary" id="again">Tekrar oyna</button>
+  <button data-go="board" style="margin-top:8px;text-align:center">Puan tablosu</button>
+  <button class="ghost" data-go="menu">Ana menü</button>
+</section>
+
+<!-- HECE ATÖLYESİ -->
+<section id="s-atolye" class="screen">
+  <h2>Hece atölyesi</h2>
+  <label for="aText">Dizeni yaz</label>
+  <textarea id="aText" placeholder="Gönül sazı çalar seher yelinde"></textarea>
+  <label>Hedef ölçü</label>
+  <div class="seg" id="olcuSeg">
+    <button data-v="7">7'li</button><button data-v="8">8'li</button>
+    <button data-v="11" class="sel">11'li</button><button data-v="14">14'lü</button>
+  </div>
+  <div class="card">
+    <div class="dize" id="aOut" style="min-height:40px;font-size:22px">—</div>
+    <div class="badges"><span class="pill" id="aHece">0 hece</span><span class="pill" id="aLab">dudak ünsüzü yok</span></div>
+    <p class="sub center" id="aVerdict" style="margin-bottom:0"></p>
+  </div>
+  <button class="primary" id="aTry">Bu dizeyi kamerayla dene</button>
+  <button class="ghost" data-go="menu">Geri</button>
+</section>
+
+<!-- PUAN TABLOSU -->
+<section id="s-board" class="screen">
+  <h2>Puan tablosu</h2>
+  <div class="card" id="boardBody"></div>
+  <p class="sub">Puanlar yalnızca bu cihazın tarayıcısında saklanır.</p>
+  <button class="ghost" id="boardClear">Tabloyu sıfırla</button>
+  <button class="ghost" data-go="menu">Geri</button>
+</section>
+
+</main>
+
+<video id="video" playsinline muted class="hide"></video>
+<canvas id="overlay" class="hide"></canvas>
+
+<script id="core">
+// ---- Saf mantık: hece sayımı, dudak ünsüzü denetimi, içerik ----
+const UNLULER = "aeıioöuüâîû";
+const DUDAK = "bpmfv";
+function kucuk(s){ return s.toLocaleLowerCase("tr"); }
+function heceSay(s){ let n=0; for(const c of kucuk(s)) if(UNLULER.includes(c)) n++; return n; }
+function dudakHarfleri(s){ const out=[]; const k=kucuk(s); for(let i=0;i<k.length;i++) if(DUDAK.includes(k[i])) out.push(i); return out; }
+
+const DIZELER = {
+  cirak: [
+    "Dağlar kışın kar tutar",
+    "Gönül gezer, dil söyler",
+    "Yaz gelince gül açar",
+    "Sazın teli incedir",
+    "Ay doğar gece yarısı",
+    "Söz dediğin az olur",
+    "Yol uzun, yolcu yorgun",
+    "Deniz durgun, gök açık",
+    "Kuşlar göçer güz günü"
+  ],
+  kalfa: [
+    "Dağların ardından güneş doğarken",
+    "Gönül sazı çalar seher yelinde",
+    "Yollara düşer âşık gün ışırken",
+    "Sözün incisini dile dizerler",
+    "Yaylanın çiçeği açar ilk yazda",
+    "Deniz kıyısında dalgalar coşar",
+    "Uzun ince yolda yorulur insan",
+    "Kışın ardı yazdır, sıkılır geçer",
+    "Ata yadigârı sözü taşırız",
+    "Ilgıt ılgıt eser yaylanın yeli",
+    "Dudağı değenin oyunu yanar",
+    "Hilesiz hurdasız yarışırız gel",
+    "Elde saz dilde söz yürekte sızı",
+    "Geçti günler aylar yıllar derinden",
+    "Kaçkar dağlarında kar durur yazın"
+  ],
+  usta: [
+    "Güneş doğar dağların ardından ışıl ışıl",
+    "Ata yadigârı sanat yaşar nice yıllar",
+    "Dere akar taşa değer ses gelir uzaktan",
+    "Gece yıldızlar tek tek düşer engin denize",
+    "Âşık sazı alır ele, dile gelir teller",
+    "Sözün doğrusunu söyle, eğriden uzak dur",
+    "Yeşil yaylalarda kaldı gençliğin izleri",
+    "Yaz gelince yaylalara göçer ulu kuşlar"
+  ]
+};
+const AYAKLAR = ["yol","dağ","gönül","söz","gece","deniz","yıl","saz","güneş","hasret","yayla","yıldız"];
+</script>
+
+<script>
+(function(){
+"use strict";
+const $ = id => document.getElementById(id);
+const esc = s => s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const shuffle = a => { a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; };
+const LEVEL_NAME = {cirak:"Çırak",kalfa:"Kalfa",usta:"Usta"};
+
+// ---------- Ekran geçişleri ----------
+let current = "menu";
+function show(name){
+  current = name;
+  document.querySelectorAll(".screen").forEach(s => s.classList.toggle("on", s.id === "s-"+name));
+  if(name==="board") renderBoard();
+  if(name==="atolye") renderAtolye();
+  if(name==="cal") mountCam($("calCam"));
+  if(name==="play") mountCam($("playCam"));
+  if(name!=="play" && name!=="cal") stopCamera();
+  window.scrollTo(0,0);
+}
+document.querySelectorAll("[data-go]").forEach(b => b.addEventListener("click", () => { game.phase="idle"; show(b.dataset.go); }));
+function seg(id, cb){
+  const el=$(id); let val=el.querySelector(".sel").dataset.v;
+  el.querySelectorAll("button").forEach(b => b.addEventListener("click", () => {
+    el.querySelectorAll("button").forEach(x=>x.classList.remove("sel")); b.classList.add("sel"); val=b.dataset.v; cb&&cb(val);
+  }));
+  return () => val;
+}
+const getLevel = seg("levelSeg"), getDuel = seg("duelSeg"), getOlcu = seg("olcuSeg", renderAtolye);
+
+// ---------- Dudak algılayıcı (MediaPipe Face Landmarker) ----------
+const MP = "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14";
+const MODEL = "https://storage.googleapis.com/mediapipe-models/face_landmarker/face_landmarker/float16/1/face_landmarker.task";
+const INNER = [78,95,88,178,87,14,317,402,318,324,308,415,310,311,312,13,82,81,80,191];
+const OUTER = [61,146,91,181,84,17,314,405,321,375,291,409,270,269,267,0,37,39,40,185];
+const det = { landmarker:null, loading:null, stream:null, demo:false, face:false, ratio:0.2, thr:0.035, lastVideoTime:-1, pts:null };
+const video = $("video"), overlay = $("overlay"), octx = overlay.getContext("2d");
+
+function mountCam(host){
+  video.classList.remove("hide"); overlay.classList.remove("hide");
+  host.prepend(overlay); host.prepend(video);
+}
+function loadLandmarker(){
+  if(det.loading) return det.loading;
+  det.loading = (async () => {
+    const vision = await import(MP + "/vision_bundle.mjs");
+    const files = await vision.FilesetResolver.forVisionTasks(MP + "/wasm");
+    const opts = d => ({ baseOptions:{ modelAssetPath:MODEL, delegate:d }, runningMode:"VIDEO", numFaces:1 });
+    try { det.landmarker = await vision.FaceLandmarker.createFromOptions(files, opts("GPU")); }
+    catch(e){ det.landmarker = await vision.FaceLandmarker.createFromOptions(files, opts("CPU")); }
+  })();
+  det.loading.catch(() => { det.loading = null; });
+  return det.loading;
+}
+async function startCamera(){
+  const note = $("calNote");
+  note.classList.remove("hide");
+  det.demo = false;
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    note.textContent = "Bu sayfa kameraya erişemiyor. Dosyayı Chrome'da doğrudan açın ya da https üzerinden yayınlayın."; return false;
+  }
+  try{
+    note.textContent = "Kamera izni bekleniyor…";
+    if(!det.stream){
+      det.stream = await navigator.mediaDevices.getUserMedia({ video:{ facingMode:"user", width:{ideal:640}, height:{ideal:480} }, audio:false });
+      video.srcObject = det.stream; await video.play();
+    }
+    note.textContent = "Yüz modeli yükleniyor (internet gerekir)…";
+    await loadLandmarker();
+    note.classList.add("hide");
+    return true;
+  }catch(e){
+    const izin = e && (e.name==="NotAllowedError" || e.name==="SecurityError");
+    note.textContent = izin ? "Kamera izni verilmedi. Tarayıcı ayarlarından izin verip tekrar deneyin."
+      : "Kamera ya da yüz modeli açılamadı: " + (e && e.message ? e.message : e);
+    return false;
+  }
+}
+function stopCamera(){
+  if(det.stream){ det.stream.getTracks().forEach(t=>t.stop()); det.stream=null; video.srcObject=null; }
+  det.face=false; det.pts=null; octx.clearRect(0,0,overlay.width,overlay.height);
+}
+function dist(a,b){ return Math.hypot(a.x-b.x, a.y-b.y); }
+function detect(){
+  if(det.demo || !det.landmarker || !det.stream || video.readyState < 2) return;
+  if(video.currentTime === det.lastVideoTime) return;
+  det.lastVideoTime = video.currentTime;
+  let res; try{ res = det.landmarker.detectForVideo(video, performance.now()); }catch(e){ return; }
+  const lm = res && res.faceLandmarks && res.faceLandmarks[0];
+  if(!lm){ det.face=false; det.pts=null; return; }
+  det.face = true; det.pts = lm;
+  const w = dist(lm[61], lm[291]) || 1e-6;
+  det.ratio = dist(lm[13], lm[14]) / w;   // iç dudak aralığı / ağız genişliği
+}
+function drawOverlay(touch){
+  const vw = video.videoWidth||640, vh = video.videoHeight||480;
+  if(overlay.width!==vw){ overlay.width=vw; overlay.height=vh; }
+  octx.clearRect(0,0,vw,vh);
+  if(!det.pts) return;
+  octx.lineWidth = 3; octx.strokeStyle = touch ? "#e0564a" : "#3fbf9b";
+  for(const ring of [OUTER, INNER]){
+    octx.beginPath();
+    ring.forEach((i,k) => { const p=det.pts[i]; k? octx.lineTo(p.x*vw,p.y*vh) : octx.moveTo(p.x*vw,p.y*vh); });
+    octx.closePath(); octx.stroke();
+  }
+}
+
+// ---------- Ses ----------
+let actx=null;
+function beep(freq, ms){
+  try{
+    actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.frequency.value=freq; o.connect(g); g.connect(actx.destination);
+    g.gain.setValueAtTime(0.12, actx.currentTime); g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+ms/1000);
+    o.start(); o.stop(actx.currentTime+ms/1000);
+  }catch(e){}
+}
+
+// ---------- Oyun durumu ----------
+const game = { phase:"idle", mode:"solo", players:[], turn:0, turns:0, totalTurns:0, queue:[], line:"", hece:0,
+  target:1, activity:0, timeLeft:0, timeMax:1, armT:0, closedFrames:0, prev:null, waitT:0, config:null, practice:false, demoTouch:false };
+
+function newPlayer(name){ return { name, lives:3, score:0, streak:0, maxStreak:0, done:0 }; }
+function setupGame(cfg){
+  game.config = cfg; game.mode = cfg.mode; game.practice = !!cfg.custom;
+  if(cfg.mode==="solo"){
+    game.players = [newPlayer(cfg.name)];
+    game.queue = cfg.custom ? [cfg.custom] : shuffle(DIZELER[cfg.level]).slice(0,6);
+    game.totalTurns = game.queue.length;
+  }else{
+    game.players = [newPlayer(cfg.names[0]), newPlayer(cfg.names[1])];
+    game.totalTurns = 10;
+    game.queue = cfg.style==="hazir" ? shuffle(DIZELER.kalfa).slice(0,10) : shuffle(AYAKLAR).slice(0,10);
+  }
+  game.turns = 0;
+}
+function cur(){ return game.players[game.mode==="duel" ? game.turns % 2 : 0]; }
+
+function nextTurn(){
+  const dead = game.players.some(p => p.lives<=0);
+  if(dead || game.turns >= game.totalTurns){ endGame(); return; }
+  const item = game.queue[game.turns];
+  const dogac = game.mode==="duel" && game.config.style==="dogac";
+  game.line = item;
+  game.hece = dogac ? 11 : heceSay(item);
+  game.target = game.hece * 0.05;
+  game.timeMax = dogac ? 20 : game.hece*0.7 + 4;
+  game.timeLeft = game.timeMax; game.activity = 0; game.armT = 0; game.closedFrames = 0; game.prev = null; game.demoTouch=false;
+  $("dize").innerHTML = dogac ? "Ayak: <b style='color:var(--gold);margin-left:8px'>" + esc(item) + "</b>" : esc(item);
+  $("tag").textContent = dogac ? "Bu sözcükle biten 11'li bir dize söyle" : game.hece + " hece";
+  setBanner(det.demo ? "Hazır ol…" : (game.mode==="duel" ? "Sıra " + cur().name + "'de — dudaklarını arala" : "Dudaklarını arala, başlıyoruz"), "");
+  game.phase = "arm";
+  renderHud();
+}
+function setBanner(t, cls){ const b=$("banner"); b.textContent=t; b.className="banner"+(cls?" "+cls:""); }
+function renderHud(){
+  const p = cur();
+  $("who").textContent = game.mode==="duel" ? p.name : (game.practice ? "Deneme" : LEVEL_NAME[game.config.level]) + " · " + Math.min(game.turns+1, game.totalTurns) + "/" + game.totalTurns;
+  if(game.mode==="duel") $("who").textContent = p.name + " · tur " + (Math.floor(game.turns/2)+1) + "/5";
+  $("hearts").innerHTML = "♥".repeat(Math.max(p.lives,0)) + "<s>" + "♥".repeat(3-Math.max(p.lives,0)) + "</s>";
+  $("score").textContent = p.score;
+  $("streak").textContent = p.streak>1 ? "Seri ×" + p.streak : "";
+}
+function finishLine(result){
+  const p = cur();
+  if(result==="ok"){
+    p.streak++; p.maxStreak = Math.max(p.maxStreak, p.streak); p.done++;
+    const pts = Math.round(game.hece*10*(1+0.2*(p.streak-1)) + game.timeLeft*2);
+    p.score += pts; setBanner("Helal! +" + pts + " puan", "ok"); beep(880,160);
+  }else if(result==="touch"){
+    p.lives--; p.streak=0; setBanner("Dudak değdi — bir can gitti", "bad"); beep(160,320);
+  }else{
+    p.streak=0; setBanner("Süre doldu — dize kaçtı", "bad"); beep(240,200);
+  }
+  game.turns++; game.phase="wait"; game.waitT = 1.6; renderHud();
+}
+
+// ---------- Ana döngü ----------
+let lastT = performance.now();
+function frame(now){
+  const dt = Math.min(0.1, (now-lastT)/1000); lastT = now;
+  if(current==="cal" || current==="play"){
+    detect();
+    const ratio = det.demo ? 0.2 : det.ratio;
+    const face = det.demo || det.face;
+    const touching = face && !det.demo && ratio < det.thr;
+    if(!det.demo) drawOverlay(touching);
+    if(current==="cal") tickCal(ratio, face, touching);
+    else tickPlay(dt, ratio, face, touching);
+  }
+  requestAnimationFrame(frame);
+}
+function lipPill(el, face, touching){
+  if(det.demo){ el.textContent="deneme modu"; el.className="pill gold"; return; }
+  if(!face){ el.textContent="yüz görünmüyor"; el.className="pill"; return; }
+  el.textContent = touching ? "DEĞDİ" : "açık"; el.className = "pill " + (touching?"bad":"ok");
+}
+let calSamples=null;
+function tickCal(ratio, face, touching){
+  const m=$("calMeter"); const scale = 0.4;
+  m.querySelector("i").style.width = Math.min(100, ratio/scale*100) + "%";
+  m.querySelector("em").style.left = Math.min(100, det.thr/scale*100) + "%";
+  lipPill($("calState"), face, touching);
+  $("calCam").classList.toggle("touch", touching); $("calCam").classList.toggle("open", face && !touching);
+  if(calSamples && face){
+    calSamples.push(ratio);
+    if(calSamples.length >= 25){
+      const c = calSamples.reduce((a,b)=>a+b,0)/calSamples.length;
+      det.thr = Math.min(0.09, Math.max(0.02, c + 0.02));
+      $("sens").value = Math.round(det.thr*1000);
+      calSamples = null; $("calBtn").textContent = "Ayarlandı ✓ — tekrar ayarla";
+    }
+  }
+}
+function tickPlay(dt, ratio, face, touching){
+  const cam=$("playCam");
+  cam.classList.toggle("touch", touching && game.phase==="read");
+  cam.classList.toggle("open", face && !touching);
+  lipPill($("lip"), face, touching);
+  if(game.phase==="arm"){
+    if(!face){ game.armT=0; }
+    else if(det.demo || ratio > det.thr*1.3){ game.armT += dt; if(game.armT > (det.demo?0.8:0.45)){ game.phase="read"; game.prev=ratio; setBanner("Söyle!", ""); beep(660,90); } }
+    else game.armT = 0;
+  }else if(game.phase==="read"){
+    if(!face){ setBanner("Yüz görünmüyor — kameraya bak", ""); }
+    else{
+      game.timeLeft -= dt;
+      if(!det.demo){
+        const d = Math.abs(ratio - game.prev); game.prev = ratio;
+        if(d > 0.004) game.activity += d;         // ağız hareketi = okuma ilerlemesi
+        game.closedFrames = touching ? game.closedFrames+1 : 0;
+      }
+      if(game.closedFrames >= 2 || game.demoTouch) finishLine("touch");
+      else if(game.activity >= game.target) finishLine("ok");
+      else if(game.timeLeft <= 0) finishLine("time");
+    }
+  }else if(game.phase==="wait"){
+    game.waitT -= dt; if(game.waitT<=0) nextTurn();
+  }
+  $("readMeter").querySelector("i").style.width = Math.min(100, game.activity/game.target*100) + "%";
+  $("timeMeter").querySelector("i").style.width = Math.max(0, game.timeLeft/game.timeMax*100) + "%";
+}
+requestAnimationFrame(frame);
+
+// ---------- Akış ----------
+let pending = null;
+async function goCal(cfg){
+  pending = cfg; show("cal");
+  $("calBtn").textContent = "Dudaklarım kapalı — ayarla";
+  await startCamera();
+}
+$("soloGo").addEventListener("click", () => goCal({ mode:"solo", level:getLevel(), name: $("soloName").value.trim() || "Âşık" }));
+$("duelGo").addEventListener("click", () => goCal({ mode:"duel", style:getDuel(), names:[ $("p1").value.trim()||"1. âşık", $("p2").value.trim()||"2. âşık" ] }));
+$("calBtn").addEventListener("click", () => { if(det.face) calSamples=[]; });
+$("sens").addEventListener("input", e => { det.thr = e.target.value/1000; });
+function begin(){
+  beep(520,60);
+  $("demoBox").classList.toggle("hide", !det.demo);
+  $("playCam").classList.toggle("hide", det.demo);
+  setupGame(pending); show("play"); nextTurn();
+}
+$("calGo").addEventListener("click", () => {
+  if(!det.landmarker || !det.stream){ $("calNote").classList.remove("hide"); $("calNote").textContent = "Kamera hazır değil. İzin verin ya da aşağıdan kamerasız deneme modunu seçin."; return; }
+  det.demo=false; begin();
+});
+$("calDemo").addEventListener("click", () => { det.demo=true; stopCamera(); begin(); });
+$("demoRead").addEventListener("click", () => { if(game.phase==="read") game.activity = game.target; });
+$("demoTouch").addEventListener("click", () => { if(game.phase==="read") game.demoTouch = true; });
+$("quit").addEventListener("click", endGame);
+$("again").addEventListener("click", () => { if(pending) goCal(pending); else show("menu"); });
+
+function endGame(){
+  game.phase="idle";
+  const body=$("endBody"); let html="";
+  if(game.mode==="solo"){
+    const p=game.players[0];
+    $("endTitle").textContent = p.lives<=0 ? "Canların bitti" : "Tur tamam";
+    const badges=[];
+    if(!game.practice && !det.demo){
+      if(p.lives===3 && p.done===game.totalTurns) badges.push("Dudak Değmez");
+      if(p.maxStreak>=5) badges.push("Seri Ustası");
+      if(game.config.level==="usta" && p.done>=5) badges.push("Usta Âşık");
+    }
+    html += "<div class='big'>"+p.score+"</div><p class='center sub'>"+p.done+"/"+game.totalTurns+" dize · en uzun seri "+p.maxStreak+"</p>";
+    if(badges.length) html += "<div class='badges'>"+badges.map(b=>"<span class='pill gold'>"+b+"</span>").join("")+"</div>";
+    if(det.demo) html += "<p class='center sub'>Deneme modunda oynandı; puan tabloya yazılmadı.</p>";
+    else if(!game.practice && p.score>0) saveScore(p.name, p.score, LEVEL_NAME[game.config.level]);
+  }else{
+    const [a,b]=game.players;
+    let win = a.lives<=0 ? b : b.lives<=0 ? a : a.score>b.score ? a : b.score>a.score ? b : null;
+    $("endTitle").textContent = win ? "Kazanan: " + win.name : "Berabere";
+    html += "<div class='card'><table><tr><th>Âşık</th><th>Can</th><th>Puan</th></tr>" +
+      game.players.map(p=>"<tr><td>"+esc(p.name)+"</td><td>"+Math.max(p.lives,0)+"</td><td>"+p.score+"</td></tr>").join("") + "</table></div>";
+    if(det.demo) html += "<p class='center sub'>Deneme modunda oynandı; puan tabloya yazılmadı.</p>";
+    else game.players.forEach(p => { if(p.score>0) saveScore(p.name, p.score, "Atışma"); });
+  }
+  body.innerHTML = html; show("end");
+}
+
+// ---------- Puan tablosu ----------
+const KEY="teknoleb_scores_v1"; let memBoard=[];
+function loadBoard(){ try{ const r=JSON.parse(localStorage.getItem(KEY)||"[]"); if(Array.isArray(r)) return r; }catch(e){} return memBoard; }
+function saveScore(n,s,m){
+  const list=loadBoard(); list.push({n,s,m,d:new Date().toLocaleDateString("tr-TR")});
+  list.sort((a,b)=>b.s-a.s); memBoard=list.slice(0,10);
+  try{ localStorage.setItem(KEY, JSON.stringify(memBoard)); }catch(e){}
+}
+function renderBoard(){
+  const list=loadBoard();
+  $("boardBody").innerHTML = list.length ? "<table><tr><th>#</th><th>Âşık</th><th>Tür</th><th>Puan</th></tr>" +
+    list.map((r,i)=>"<tr><td>"+(i+1)+"</td><td>"+esc(String(r.n))+"</td><td>"+esc(String(r.m))+"</td><td>"+Number(r.s)+"</td></tr>").join("")+"</table>"
+    : "<p class='sub center'>Henüz puan yok. İlk âşık sen ol.</p>";
+}
+$("boardClear").addEventListener("click", () => { memBoard=[]; try{ localStorage.removeItem(KEY); }catch(e){} renderBoard(); });
+
+// ---------- Hece atölyesi ----------
+function renderAtolye(){
+  const t=$("aText").value.trim(); const hedef=Number(getOlcu());
+  const n=heceSay(t), labs=new Set(dudakHarfleri(t));
+  $("aOut").innerHTML = t ? [...t].map((c,i)=> labs.has(i) ? "<span class='lab'>"+esc(c)+"</span>" : esc(c)).join("") : "—";
+  $("aHece").textContent = n + " hece"; $("aHece").className = "pill " + (t ? (n===hedef?"ok":"bad") : "");
+  $("aLab").textContent = labs.size ? labs.size + " dudak ünsüzü" : "dudak ünsüzü yok"; $("aLab").className = "pill " + (t ? (labs.size?"bad":"ok") : "");
+  let v="";
+  if(t){
+    if(!labs.size && n===hedef) v="Tam lebdeğmez: ölçü tutuyor, dudak değmiyor.";
+    else v = [labs.size ? "Kırmızı harfleri eş anlamlı sözcüklerle değiştir (baba → ata, para → akçe)." : "", n!==hedef ? (n<hedef ? (hedef-n)+" hece eksik." : (n-hedef)+" hece fazla.") : ""].filter(Boolean).join(" ");
+  }
+  $("aVerdict").textContent = v;
+}
+$("aText").addEventListener("input", renderAtolye);
+$("aTry").addEventListener("click", () => {
+  const t=$("aText").value.trim();
+  if(!t || heceSay(t)<3){ $("aVerdict").textContent="Önce bir dize yaz."; return; }
+  goCal({ mode:"solo", level:"kalfa", name:"Deneme", custom:t });
+});
+})();
+</script>
+</body>
+</html>
