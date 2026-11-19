@@ -118,9 +118,9 @@ td:last-child,th:last-child{text-align:right}
     <button data-v="cirak" class="sel">Çırak<br><small>7–8 hece</small></button>
     <button data-v="kalfa">Kalfa<br><small>11 hece</small></button>
     <button data-v="usta">Usta<br><small>14 hece</small></button>
-    <button data-v="dogac">Doğaçlama<br><small>YZ hakem</small></button>
+    <button data-v="dogac">Doğaçlama<br><small>kendi dizen</small></button>
   </div>
-  <div class="card sub">6 dize, 3 can. Doğaçlamada sana bir ayak (sözcük) verilir; onunla kendi dizeni söylersin, yapay zekâ anlamlı mı diye bakar. Her dizeyi sesli oku. Mikrofon açıksa söylediğin dizeyle karşılaştırılır; kapalıysa ağız hareketin sayılır. Dudakların değerse can gider.</div>
+  <div class="card sub">6 dize, 3 can. Doğaçlamada sana bir ayak (sözcük) verilir; onunla kendi dizeni söylersin (mikrofon açık olmalı). Her dizeyi sesli oku. Mikrofon açıksa söylediğin dizeyle karşılaştırılır; kapalıysa ağız hareketin sayılır. Dudakların değerse can gider.</div>
   <button class="primary" id="soloGo">Kamerayı hazırla</button>
   <button class="ghost" data-go="menu">Geri</button>
 </section>
@@ -136,7 +136,12 @@ td:last-child,th:last-child{text-align:right}
     <button data-v="kalfa">Kalfa<br><small>ara sıra</small></button>
     <button data-v="usta">Usta<br><small>nadiren</small></button>
   </div>
-  <div class="card sub">Sırayla söylenir, beşer tur. Senin sıranda dizeyi dudak değdirmeden oku. Tekno Âşık'ın sırasında onun dizesini sen denetle: dizede b, p, m, f, v varsa “Dudak değdi!” de. Yakalarsan o can kaybeder; kaçırırsan ya da yanlış itiraz edersen sen kaybedersin.</div>
+  <label>Söyleyiş</label>
+  <div class="seg" id="aiStyleSeg">
+    <button data-v="hazir" class="sel">Hazır dize<br><small>ekrandakini oku</small></button>
+    <button data-v="dogac">Doğaçlama<br><small>kendi dizeni söyle</small></button>
+  </div>
+  <div class="card sub">Sırayla söylenir, beşer tur. Senin sıranda dizeyi dudak değdirmeden oku; doğaçlamada sana bir ayak verilir, kendi dizeni söylersin (mikrofon açık olmalı) ve Tekno Âşık aynı ayakla cevap verir. Tekno Âşık'ın sırasında onun dizesini sen denetle: dizede b, p, m, f, v varsa “Dudak değdi!” de. Yakalarsan o can kaybeder; kaçırırsan ya da yanlış itiraz edersen sen kaybedersin.</div>
   <button class="primary" id="aiGo">Kamerayı hazırla</button>
   <button class="ghost" data-go="menu">Geri</button>
 </section>
@@ -174,9 +179,6 @@ td:last-child,th:last-child{text-align:right}
     <label class="chk"><input type="checkbox" id="micOn"> Mikrofonla ses denetimi</label>
     <p class="sub" id="micInfo" style="margin:4px 0 0">Açınca bir şey söyle; duyulan burada görünür.</p>
     <div class="heard hide" id="micHeard">Duyulan: …</div>
-    <label for="yzUrl">YZ hakem sunucusu (anlam denetimi için)</label>
-    <input type="text" id="yzUrl" inputmode="url" autocomplete="off" placeholder="https://tekno-leb.….workers.dev">
-    <div class="row" style="margin-top:8px"><button class="small" id="yzTest">Sunucuyu dene</button><span class="sub" id="yzInfo" style="flex:2;font-size:13.5px">Boşsa basit kurallarla denetlenir.</span></div>
   </div>
   <button class="primary" id="calGo">Oyuna başla</button>
   <button class="ghost" id="calDemo">Kamera yok — kamerasız deneme modu</button>
@@ -233,8 +235,6 @@ td:last-child,th:last-child{text-align:right}
     <div class="badges"><span class="pill" id="aHece">0 hece</span><span class="pill" id="aLab">dudak ünsüzü yok</span></div>
     <p class="sub center" id="aVerdict" style="margin-bottom:0"></p>
   </div>
-  <button id="aYz" style="text-align:center">Anlamlı mı? YZ hakeme sor</button>
-  <p class="sub center" id="aYzOut"></p>
   <button class="primary" id="aTry">Bu dizeyi kamerayla dene</button>
   <button class="ghost" data-go="menu">Geri</button>
 </section>
@@ -298,12 +298,6 @@ function dogacDegerlendir(duyulan, ayak){
     ayak: !!ayak && soz.some(w => w.startsWith(sade(ayak))) };
   r.olcu = r.hece===11 ? 2 : Math.abs(r.hece-11)<=1 ? 1 : 0;
   return r;
-}
-
-// YZ hakem yanıtını doğrula (sunucudan gelen JSON)
-function yzCozumle(j){
-  if(!j || typeof j!=="object" || typeof j.anlamli!=="boolean") return null;
-  return { anlamli:j.anlamli, puan:Math.max(0,Math.min(10,Math.round(Number(j.puan)||0))), ayak_uygun:!!j.ayak_uygun, gerekce:String(j.gerekce||"").slice(0,120) };
 }
 
 const DIZELER = {
@@ -389,6 +383,10 @@ const DIZELER = {
     "Ilgın ılgın esen yel"
   ],
   kalfa: [
+    "Rüzgâr eser, sallanır ak çiçekler",
+    "Gündüz güneş yakar, gece serindir",
+    "Gelecek yarınlar gençlerin olur",
+    "Yol üstünde handa yolcu dinlenir",
     "Dağların ardından güneş doğarken",
     "Gönül sazı çalar seher yelinde",
     "Yollara düşer âşık gün ışırken",
@@ -688,6 +686,7 @@ function seg(id, cb){
   }));
   return () => val;
 }
+const getAiStyle = seg("aiStyleSeg");
 const getLevel = seg("levelSeg"), getDuel = seg("duelSeg"), getAi = seg("aiSeg"), getOlcu = seg("olcuSeg", renderAtolye);
 $("sozluk").innerHTML = Object.keys(SOZLUK).map(k => "<span>"+esc(k)+" → <i>"+esc(SOZLUK[k])+"</i></span>").join("");
 
@@ -845,9 +844,17 @@ function setupGame(cfg){
     game.players = [newPlayer(cfg.name), newPlayer(AI_NAME, true)];
     game.totalTurns = 10;
     const temiz = shuffle(DIZELER.kalfa), tuzak = shuffle(TUZAK); game.queue = [];
+    const ayaklar = shuffle(AYAKLAR);
+    const sec = (havuz, ayak) => {            // ayağı içeren bir dize varsa onu seç
+      const i = ayak ? havuz.findIndex(l => kelimeler(l).some(w => w.startsWith(sade(ayak)))) : -1;
+      return havuz.splice(i >= 0 ? i : havuz.length-1, 1)[0];
+    };
     for(let i=0;i<10;i++){
-      if(i%2===0) game.queue.push(temiz.pop());
-      else game.queue.push(Math.random() < AI_SLIP[cfg.level] ? tuzak.pop() : temiz.pop());
+      if(i%2===0) game.queue.push(cfg.style==="dogac" ? ayaklar.pop() : temiz.pop());
+      else{
+        const ayak = cfg.style==="dogac" ? game.queue[i-1] : "";
+        game.queue.push(Math.random() < AI_SLIP[cfg.level] ? sec(tuzak, ayak) : sec(temiz, ayak));
+      }
     }
   }
   game.turns = 0;
@@ -862,7 +869,7 @@ function nextTurn(){
   game.line = item; game.finishReq=false; game.demoTouch=false; game.prog=0;
   $("judgeBox").classList.add("hide"); $("finishBtn").classList.add("hide"); $("heard").classList.add("hide");
   if(cur().isAI){ startJudge(item); return; }
-  const dogac = (game.mode==="duel" && game.config.style==="dogac") || (game.mode==="solo" && game.config.level==="dogac" && !game.practice);
+  const dogac = (game.mode==="duel" && game.config.style==="dogac") || (game.mode==="ai" && game.config.style==="dogac") || (game.mode==="solo" && game.config.level==="dogac" && !game.practice);
   const sesli = micKullan();
   game.dogac = dogac;
   game.hece = dogac ? 11 : heceSay(item);
@@ -910,62 +917,25 @@ function finishLine(result, info){
   }
   game.turns++; game.phase="wait"; game.waitT = (result==="heardlab" || (game.dogac && micKullan())) ? 3.2 : 1.7; renderHud();
 }
-async function dogacBitir(){
+function dogacBitir(){
   const metin = mic.text, ayak = game.line;
   const r = dogacDegerlendir(metin, ayak);
   micStop();
+  $("heard").innerHTML = "Duyulan: <b>" + esc(metin) + "</b>";
   if(r.dudak){ finishLine("heardlab"); return; }
-  let yz = null;
-  if(yzAdres()){
-    game.phase = "ai"; setBanner("YZ hakem dinliyor…", "");
-    $("heard").innerHTML = "Duyulan: <b>" + esc(metin) + "</b>";
-    try{ yz = await yzSor(metin, ayak); }catch(e){ yz = { hata: e.message || String(e) }; }
-    if(game.phase !== "ai") return;            // oyun bu arada bitirildiyse
-  }
-  const notYz = yz && !yz.hata ? " · YZ: " + (yz.anlamli ? "anlamlı" : "anlamsız") + " (" + yz.puan + "/10)" + (yz.gerekce ? " — " + yz.gerekce : "") : "";
-  $("heard").innerHTML = "Duyulan: <b>" + esc(metin) + "</b>" + (notYz ? "<br><span style='color:var(--gold)'>" + esc(notYz.slice(3)) + "</span>" : "") +
-    (yz && yz.hata ? "<br><span style='color:var(--bad)'>YZ hakeme ulaşılamadı, basit kurallarla denetlendi.</span>" : "");
-  const anlamli = yz && !yz.hata ? yz.anlamli : r.anlasilir;
-  if(!anlamli){ finishLine("nonsense", { not: yz && !yz.hata && yz.gerekce ? "Anlamsız: " + yz.gerekce : null }); return; }
-  const ayakTuttu = yz && !yz.hata ? (r.ayak || yz.ayak_uygun) : r.ayak;
-  const yzPuan = yz && !yz.hata ? yz.puan*6 : 30;
-  const taban = 50 + yzPuan + (ayakTuttu?40:0) + (r.olcu===2?40 : r.olcu===1?15 : 0);
-  const not = r.hece + " hece" + (r.olcu===2 ? ", ölçü tam" : "") + (ayakTuttu ? ", ayak tuttu." : ", ayak yok.");
+  if(!r.anlasilir){ finishLine("nonsense"); return; }
+  const taban = 80 + (r.ayak?40:0) + (r.olcu===2?40 : r.olcu===1?15 : 0);
+  const not = r.hece + " hece" + (r.olcu===2 ? ", ölçü tam" : "") + (r.ayak ? ", ayak tuttu." : ", ayak yok.");
   finishLine("ok", { taban, not });
 }
-
-// ---------- YZ hakem (Cloudflare Worker) ----------
-const YZ_KEY = "teknoleb_yz_url";
-function yzAdres(){ return ($("yzUrl").value || "").trim(); }
-try{ $("yzUrl").value = localStorage.getItem(YZ_KEY) || ""; }catch(e){}
-$("yzUrl").addEventListener("change", () => { try{ localStorage.setItem(YZ_KEY, yzAdres()); }catch(e){} });
-async function yzSor(metin, ayak){
-  const url = yzAdres(); if(!url) throw new Error("Sunucu adresi yok");
-  const ctrl = new AbortController(); const t = setTimeout(() => ctrl.abort(), 12000);
-  try{
-    const r = await fetch(url, { method:"POST", headers:{ "Content-Type":"application/json" }, body: JSON.stringify({ metin, ayak: ayak||"" }), signal: ctrl.signal });
-    const j = await r.json().catch(() => null);
-    if(!r.ok) throw new Error((j && j.hata) || ("Sunucu hatası " + r.status));
-    const c = yzCozumle(j); if(!c) throw new Error("Yanıt okunamadı");
-    return c;
-  }catch(e){ throw new Error(e.name==="AbortError" ? "Zaman aşımı" : e.message); }
-  finally{ clearTimeout(t); }
-}
-$("yzTest").addEventListener("click", async () => {
-  try{ localStorage.setItem(YZ_KEY, yzAdres()); }catch(e){}
-  const info = $("yzInfo"); info.textContent = "Soruluyor…";
-  try{
-    const a = await yzSor("Dağların ardından güneş doğarken", "dağ");
-    const b = await yzSor("tuz kırk araç gece uçar ayakkabı", "");
-    info.textContent = (a.anlamli && !b.anlamli) ? "Çalışıyor ✓ (anlamlıyı ve anlamsızı doğru ayırdı)" : "Bağlandı ama sonuçlar beklenmedik: " + a.anlamli + " / " + b.anlamli;
-  }catch(e){ info.textContent = "Olmadı: " + e.message; }
-});
 
 // ---------- Tekno Âşık'ın sırası: oyuncu hakemlik yapar ----------
 function startJudge(item){
   micStop();
   game.hece = heceSay(item); game.timeMax = 10; game.timeLeft = 10; game.phase = "judge";
-  $("dize").textContent = item; $("tag").textContent = AI_NAME + " söyledi";
+  $("dize").textContent = item;
+  const ayak = game.config.style==="dogac" ? game.queue[game.turns-1] : "";
+  $("tag").textContent = AI_NAME + (ayak ? " cevap verdi · ayak: " + ayak : " söyledi");
   $("readLbl").textContent = "Okuma";
   setBanner("Dize lebdeğmez mi? Karar ver.", "");
   $("judgeBox").classList.remove("hide");
@@ -1074,7 +1044,7 @@ async function goCal(cfg){
   await startCamera();
 }
 $("soloGo").addEventListener("click", () => goCal({ mode:"solo", level:getLevel(), name: $("soloName").value.trim() || "Âşık" }));
-$("aiGo").addEventListener("click", () => goCal({ mode:"ai", level:getAi(), name: $("aiName").value.trim() || "Âşık" }));
+$("aiGo").addEventListener("click", () => goCal({ mode:"ai", level:getAi(), style:getAiStyle(), name: $("aiName").value.trim() || "Âşık" }));
 $("duelGo").addEventListener("click", () => goCal({ mode:"duel", style:getDuel(), names:[ $("p1").value.trim()||"1. âşık", $("p2").value.trim()||"2. âşık" ] }));
 $("calBtn").addEventListener("click", () => { if(det.face) calSamples=[]; });
 $("sens").addEventListener("input", e => { det.thr = e.target.value/1000; });
@@ -1159,15 +1129,7 @@ function renderAtolye(){
   }
   $("aVerdict").textContent = v;
 }
-$("aText").addEventListener("input", () => { renderAtolye(); $("aYzOut").textContent=""; });
-$("aYz").addEventListener("click", async () => {
-  const t=$("aText").value.trim(), out=$("aYzOut");
-  if(!t){ out.textContent="Önce bir dize yaz."; return; }
-  if(!yzAdres()){ out.textContent="YZ hakem sunucusu ayarlı değil (Kamera ayarı ekranından eklenir)."; return; }
-  out.textContent="YZ hakem düşünüyor…";
-  try{ const r=await yzSor(t,""); out.textContent=(r.anlamli?"Anlamlı ✓ ":"Anlamsız ✗ ")+"("+r.puan+"/10)"+(r.gerekce?" — "+r.gerekce:""); }
-  catch(e){ out.textContent="Ulaşılamadı: "+e.message; }
-});
+$("aText").addEventListener("input", renderAtolye);
 $("aTry").addEventListener("click", () => {
   const t=$("aText").value.trim();
   if(!t || heceSay(t)<3){ $("aVerdict").textContent="Önce bir dize yaz."; return; }
